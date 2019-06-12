@@ -1,0 +1,41 @@
+------------------------------------ estado em coleta
+
+  rotas:
+    recebe pedido de ponto
+    retorna ponto ou fim de rota
+  processamento:
+    recebe onde ver 
+    retorna se tem ou nao obstaculo
+  eletronica:
+    recebe para onde ir (lat, long)
+    retorna onde esta (lat, long)
+    retorna status do barco
+
+
+pedir ponto para rotas -> receber ponto de rotas -> verificar mudança direcao if mudou then virar na direcao, ver perto, esperar retorno else nada
+-> pedir ver longe -> pedir andar ponto -> if !receber retorno do ver ponto || retorno do ver ponto == negativo then ir para <em desvio> else loop
+{em qq momento, se receber sinal de status 'ruim' <retornar à base>} 
+
+
+------------------------------------- retornando a base
+rotas:
+  same em coleta
+processamento:
+  same em coleta
+eletronica:
+  ????
+
+sinal para ROTAS de retorno a base -> mandar sinal desativar esteira -> virar direcao da base -> pedir processamento imagem perto -> receber processamento imagem perto if obstaculo then desvio else nada
+-> enquanto ! chegar base then andar para base -> if status == critico then ir para <impossibilitado de operar> else nada -> chegando na base <em espera>
+
+-------------------------------------- desvio
+
+mandar sinal de desvio p ROTAS -> retornar para estado anterior
+
+-------------------------------------- impossibilitado
+
+mandar sinal de sos -> <em espera>
+
+-------------------------------------- em espera
+
+enquanto ! sinal then do nothing -> if sinal == reiniciar coleta then ir p <em coleta> else if sinal == fim then poweroff else wait
