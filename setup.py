@@ -10,7 +10,7 @@ here = path.abspath(path.dirname(__file__))
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()
 
-# allowes setup.py to be run from any path
+# allows setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
@@ -33,9 +33,9 @@ CLASSIFIERS = [
 ]
 
 setup(  # pragma: no cover
-    name='',
-    description="",  # nopep8
-    url='',
+    name='gaia-control',
+    description="Controller module for the gaia boat",  # nopep8
+    url='https://github.com/gaia-boat/control',
     long_description=codecs.open('README.md', 'rb', 'utf8').read(),
     long_description_content_type='text/markdown',
     author='Gaia boat group',
@@ -43,11 +43,6 @@ setup(  # pragma: no cover
     version=codecs.open('VERSION.txt', 'rb', 'utf8').read(),
     packages=find_packages(),
     keywords=['gaia', 'boat', 'pi2'],
-    # entry_points={
-    #     'console_scripts': [
-    #         'ezissue = ezissue.ezissue:main'
-    #     ]
-    # },
     install_requires=REQUIREMENTS,
     license='GNU',
     classifiers=CLASSIFIERS,
