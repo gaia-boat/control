@@ -1,3 +1,3 @@
 def test_placeholder():
-  if not True:
-    raise AssertionError()
+    if not True:
+        raise AssertionError()
