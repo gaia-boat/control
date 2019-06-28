@@ -1,5 +1,5 @@
 import math
-from router.map_route.map_route import MapRouter as Router
+from gaia-route.map_route import MapRouter as Router
 
 
 class GaiaControl():
@@ -190,3 +190,8 @@ class GaiaControl():
                 return angle + math.pi/4
 
         return angle
+
+
+if __name__ == '__main__':
+    control = GaiaControl()
+    control.run()

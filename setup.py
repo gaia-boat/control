@@ -41,6 +41,11 @@ setup(  # pragma: no cover
     version=codecs.open('VERSION.txt', 'rb', 'utf8').read(),
     packages=find_packages(),
     keywords=['gaia', 'boat', 'pi2'],
+    entry_points={
+        'console_scripts': [
+            'gaia=gaia_control.gaia_control:__main__'
+        ]
+    },
     install_requires=REQUIREMENTS,
     license='GNU',
     classifiers=CLASSIFIERS,
