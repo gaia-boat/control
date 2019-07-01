@@ -1,6 +1,5 @@
 import math
-from gaia-route.map_route import MapRouter as Router
-
+from gaia_router.map_route.map_route import MapRouter as Router
 
 class GaiaControl():
 
