@@ -1,20 +1,59 @@
 import math
 from gaia_router.map_route.map_route import MapRouter as Router
 
+
+def get_collection_area():
+    return [(-15.82395, -47.8449737), (-15.822749, -47.8444752)]
+
+
+def get_base_location():
+    return (-15.82395, -47.8449737)
+
+
+def get_current_position():
+    return (-15.82395, -47.8449737)
+
+
+def get_direction():
+    return 0
+
+
+def get_boat_status():
+    status = input("Should i return to base ? ")
+    return status
+
+
+def get_boat_evasion():
+    status = input("Should i evade ? ")
+    return status
+
+
+def send_angle(new_direction):
+    print("sending angle", new_direction)
+
+
+def send_point(point_lat, point_long):
+    print("sending point", point_lat, point_long)
+
+
 class GaiaControl():
 
     def __init__(self):
-        # TODO recive area from app
-        # points = [(-15.82395, -47.8449737),(-15.822749,-47.8444752)]
-        points = [(0, 0), (5, 5)]
-        # TODO recive base location from app
-        # base = (-15.82395, -47.8449737)
-        base = (0, 0)
-        # TODO recive current position from gps
-        current_position = base
+        # TODO change this method to the method of the communication packge
+        # that gests the collection area
+        points = get_collection_area()
 
-        # TODO recive direction
-        self.direction = 0
+        # TODO change this method to the method of the communication packge
+        # that gests the base location
+        base = get_base_location()
+
+        # TODO change this method to the method of the communication packge
+        # that gests current position
+        current_position = get_current_position()
+
+        # TODO change this method to the method of the communication packge
+        # that gests current positio
+        self.direction = get_direction()
 
         self.router = Router(points[0], points[1], current_position, base)
         # TODO init object detection
@@ -26,7 +65,6 @@ class GaiaControl():
 
     def run(self):
         while(self.state != 'final'):
-            print(self.state)
             if(self.state == 'collecting'):
                 self.collecting()
             elif(self.state == 'evading'):
@@ -41,7 +79,6 @@ class GaiaControl():
     # This method is responsible to control the boat actions when in route
     def in_route(self):
         while(len(self.route) > 0):
-            print(self.route)
             # verifies if the next point in the route is out of the
             # collection area
             if(self.route[0][1] > self.router.points[1][1]):
@@ -50,51 +87,59 @@ class GaiaControl():
                 break
 
             else:
-                # TODO verify boat status
-                # TODO verify if exists obstacles
-                go = input("go? ")
+                # TODO change to the communication method that gets
+                # this information from eletronic
+                return_to_base = get_boat_status()
+                # TODO change to the communication method that gets
+                # this information from eletronic
+                evasion = get_boat_evasion()
 
                 new_direction = self.direction_change_angle()
                 direction_diference = new_direction - self.direction
-                print(self.direction, new_direction, direction_diference)
                 if(direction_diference != 0):
                     if(direction_diference > 0):
                         direction_diference += (2*math.pi)
-                    # send the angle to eletronic
-                    # wait for the response
+                    # TODO change to the communication method that
+                    # sends this information to eletronic
+                    # TODO wait for the response
+                    send_angle(float(direction_diference))
                     self.direction = new_direction
-                    print('changed')
+                if(return_to_base == "no"):
+                    if(evasion == "no"):
 
-                if(go == "y"):
-                    # TODO send to point GPS
-                    # TODO wait response
-                    self.router.current_position = self.route.pop(0)
+                        # TODO change to the communication method that
+                        # sends this information to eletronic
+                        # TODO wait for the response
+                        send_point(float(self.route[0][0]), float(
+                            self.route[0][1]))
+                        self.router.current_position = self.route.pop(0)
+
+                    # evades if a obstacle was found
+                    else:
+                        if(self.state == "returning_to_base"):
+                            self.was_returning = True
+                            self.return_route = self.route
+                            self.return_route.pop(0)
+                        elif(self.state == "collecting"):
+                            self.was_collecting = True
+                            self.collection_route = self.route
+                            self.collection_route.pop(0)
+                        elif(self.state == "evading"):
+                            aux += self.router.trace_evasion_route(self.route)
+                            self.route.pop(0)
+                            self.route = aux + self.route
+                            break
+                        self.state = 'evading'
+                        self.route = self.router.trace_evasion_route(
+                            self.route)
+                        break
                 # goes to base if the status verification is "bad"
-                elif(go == "c"):
+                else:
                     if(self.state == "collecting"):
                         self.was_collecting = True
                         self.collection_route = self.route
                     self.state = 'returning_to_base'
                     self.route = self.router.trace_route_to_base()
-                    break
-                # evades if a obstacle was found
-                else:
-                    print("asdkasdhaskjdh")
-                    if(self.state == "returning_to_base"):
-                        self.was_returning = True
-                        self.return_route = self.route
-                        self.return_route.pop(0)
-                    elif(self.state == "collecting"):
-                        self.was_collecting = True
-                        self.collection_route = self.route
-                        self.collection_route.pop(0)
-                    elif(self.state == "evading"):
-                        aux += self.router.trace_evasion_route(self.route)
-                        self.route.pop(0)
-                        self.route = aux + self.route
-                        break
-                    self.state = 'evading'
-                    self.route = self.router.trace_evasion_route(self.route)
                     break
 
     # method responsible to control the boat when in the default collection
@@ -128,8 +173,6 @@ class GaiaControl():
         if(self.route == []):
             self.state = "waiting"
             return
-        print("aqui")
-        print(self.route)
         self.in_route()
 
     # method responsible to control the boat when in waiting
@@ -137,7 +180,7 @@ class GaiaControl():
         # wait signal
 
         signal = input("signal? ")
-        if(self.was_collecting):
+        if(signal != "end" and self.was_collecting):
             self.state = "collecting"
             self.route = self.router.trace_diagonal_route(
                 self.router.current_position, self.collection_route[0])
@@ -159,9 +202,6 @@ class GaiaControl():
 
         if(dist_x == 0 and dist_y == 0):
             return self.direction
-
-        print("x - ", dist_x)
-        print("y - ", dist_y)
 
         if(dist_x == 0):
             if(dist_y > 0):
