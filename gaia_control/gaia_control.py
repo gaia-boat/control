@@ -38,8 +38,15 @@ def send_point(point_lat, point_long):
 
 
 def get_gps_position():
-    lat, lon, speed = gaia_communication.gps_data()
+    lat = 0
+    lon = 0
+    while lat == 0 and lon == 0:
+        lat, lon, speed = gaia_communication.gps_data()
     return (lat, lon)
+
+def interrupt():
+    #  gaia_communication.interruption_to_esp()
+    print("interrupt")
 
 
 class GaiaControl():
@@ -148,7 +155,7 @@ class GaiaControl():
         send_point(float(self.route[0][0]), float(
             self.route[0][1]))
         time.sleep(TIME_BETWEEN_STOPS)
-        interupt()
+        interrupt()
 
     # method responsible to control the boat when in the default collection
     # route
