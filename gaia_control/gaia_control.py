@@ -1,6 +1,7 @@
 import math
 from gaia_router.map_route.map_route import MapRouter as Router
 from gaia_router.macros import GPS_PRECISION
+from gaia_communication import gaia_communication
 import time
 
 TIME_BETWEEN_STOPS = 1
@@ -11,10 +12,6 @@ def get_collection_area():
 
 
 def get_base_location():
-    return (-15.82395, -47.8449737)
-
-
-def get_current_position():
     return (-15.82395, -47.8449737)
 
 
@@ -41,13 +38,8 @@ def send_point(point_lat, point_long):
 
 
 def get_gps_position():
-    lat = float(input("gps lat"))
-    lon = float(input("gps long"))
+    lat, lon, speed = gaia_communication.gps_data()
     return (lat, lon)
-
-
-def interupt():
-    print("sending interrpt")
 
 
 class GaiaControl():
@@ -63,7 +55,7 @@ class GaiaControl():
 
         # TODO change this method to the method of the communication packge
         # that gests current position
-        current_position = get_current_position()
+        current_position = get_gps_position()
 
         # TODO change this method to the method of the communication packge
         # that gests current positio
@@ -94,6 +86,7 @@ class GaiaControl():
 
         # TODO change this method to the eletronic method
         self.current_position = get_gps_position()
+        print('gps deu bom porra - ', self.current_position)
         self.router.current_position = self.current_position
 
         # TODO change to the communication method that gets
