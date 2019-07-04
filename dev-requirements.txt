@@ -3,3 +3,4 @@ pytest-watch
 pycodestyle
 twine==1.13.0
 gaia-router
+gaia-communication

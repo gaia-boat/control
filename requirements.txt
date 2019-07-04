@@ -1,1 +1,2 @@
 gaia-router
+gaia-communication
