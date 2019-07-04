@@ -42,6 +42,8 @@ def get_gps_position():
     lon = 0
     while lat == 0 and lon == 0:
         lat, lon, speed = gaia_communication.gps_data()
+        time.sleep(2)
+        print("deu ruim -- ", lat, lon)
     return (lat, lon)
 
 def interrupt():
