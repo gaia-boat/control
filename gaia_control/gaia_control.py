@@ -46,6 +46,7 @@ def get_gps_position():
         print("deu ruim -- ", lat, lon)
     return (lat, lon)
 
+
 def interrupt():
     #  gaia_communication.interruption_to_esp()
     print("interrupt")
