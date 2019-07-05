@@ -3,25 +3,10 @@ from gaia_router.map_route.map_route import MapRouter as Router
 from gaia_router.macros import GPS_PRECISION
 from gaia_communication import gaia_communication
 import time
+import os
 
-TIME_BETWEEN_STOPS = 1
-
-
-def get_collection_area():
-    return [(-15.82395, -47.8449737), (-15.822749, -47.8444752)]
-
-
-def get_base_location():
-    return (-15.82395, -47.8449737)
-
-
-def get_direction():
-    return 0
-
-
-def get_boat_status():
-    status = input("Should i return to base ? ")
-    return status
+TIME_BETWEEN_STOPS = "1"
+MESSAGE_START_SIGNAL = "i"
 
 
 def get_boat_evasion():
@@ -29,57 +14,93 @@ def get_boat_evasion():
     return status
 
 
-def send_angle(new_direction):
-    print("sending angle", new_direction)
-
-
-def send_point(point_lat, point_long):
-    print("sending point", point_lat, point_long)
-
-
 def get_gps_position():
-    lat = 0
-    lon = 0
-    while lat == 0 and lon == 0:
-        lat, lon, speed = gaia_communication.gps_data()
-        time.sleep(2)
-        print("deu ruim -- ", lat, lon)
+    os.system("sudo gpsd /dev/serial0 -F /var/run/gpsd.sock")
+    lat, lon, speed = get_gps_position()
+    os.system("sudo killall gpsd")
     return (lat, lon)
 
 
-def interrupt():
-    #  gaia_communication.interruption_to_esp()
-    print("interrupt")
+def send_activate_collection(activate_collection):
+    print("esteira ativada ", activate_collection)
+    if(activate_collection):
+        message = '1,'
+    else:
+        message = '0,'
+
+def send_angle(new_direction):
+    print("sending angle", new_direction)
+    message = str(new_direction)+','
+    return message
+
+def send_point(point_lat, point_long):
+    message = str(point_lat) +','
+    message += str(point_lang) +','
+    return message
+
+def send_go(go):
+    sendprint("sending go",go)
+    if(go):
+        message = '1,'
+    else:
+        message = '0,'
+    return message
 
 
 class GaiaControl():
 
     def __init__(self):
-        # TODO change this method to the method of the communication packge
-        # that gests the collection area
-        points = get_collection_area()
 
-        # TODO change this method to the method of the communication packge
-        # that gests the base location
-        base = get_base_location()
+        gaia_communication.open_serial_port()
 
-        # TODO change this method to the method of the communication packge
-        # that gests current position
-        current_position = get_gps_position()
+        self.recive_first_message()
 
-        # TODO change this method to the method of the communication packge
-        # that gests current positio
-        self.direction = get_direction()
-
-        self.router = Router(points[0], points[1], current_position, base)
-        # TODO init object detection
         self.route = self.router.trace_collection_route()
         self.state = 'collecting'
         self.was_collecting = False
         self.was_returning = False
+        self.activate_collection = True
+
+    def send_information(self):
+        message = send_go(self.go)
+        message += send_point(self.current_position[0],self.current_position[1])
+        message += send_angle(self.angle_to_send)
+        message += send_activate_collection(self.activate_collection)
+        gaia_communication.data_sender(message)
+        if(self.go = True):
+            time.sleep(TIME_BETWEEN_STOPS)
+            self.go = False
+            self.send_information()
+
+    def recive_first_message(self):
+        gaia_communication.data_sender(MESSAGE_START_SIGNAL)
+        message = gaia_communication.data_receiver()
+        message = message.split(',')
+        self.current_position = get_gps_position()
+
+        self.router = Router((float(message[0]), float(message[1])), (float(message[2]), float(message[3])), self.current_position, self.current_position)
+        self.direction = float(message[4])
+
+    def recive_message():
+        gaia_communication.data_sender(MESSAGE_START_SIGNAL)    
+        gaia_communication.data_sender()
+        message = gaia_communication.data_receiver()
+        message = message.split(',')
+        if(int(message[0]) == 1):
+            is_too_heavy = True
+        else:
+            is_too_heavy = False
+        distance = int(message[1])
+        if(distance>4 and distance <15):
+            is_full = True
+        else:
+            is_full = False
+        self.status = is_full or is_too_heavy
+        self.direction = message[2]
 
     def run(self):
         while(self.state != 'final'):
+            self.send_information()
             if(self.state == 'collecting'):
                 self.collecting()
             elif(self.state == 'evading'):
@@ -96,23 +117,31 @@ class GaiaControl():
 
         # TODO change this method to the eletronic method
         self.current_position = get_gps_position()
-        print('gps deu bom porra - ', self.current_position)
+        
+        evasion = get_boat_evasion()
+
+        self.position_to_send=self.current_position
+        self.angle_to_send=0
+        self.activate_collection = self.activate_collection
+        self.go = False
+
+        print('gps return - ', self.current_position)
         self.router.current_position = self.current_position
 
         # TODO change to the communication method that gets
         # this information from eletronic
-        return_to_base = get_boat_status()
 
-        if(return_to_base == 'yes' and (self.state != 'returning_to_base')):
+        if(self.status == 'yes' and (self.state != 'returning_to_base')):
             if(self.state == "collecting"):
                 self.was_collecting = True
                 self.current_position
                 self.route = [self.current_position] + self.route
                 self.collection_route = self.route
+                self.activate_collection = False
             self.route = self.router.trace_route_to_base() + self.route
             self.state = 'returning_to_base'
             return
-
+        
         new_direction = self.direction_change_angle()
         direction_diference = new_direction - self.direction
         print("---", new_direction, "---", self.direction)
@@ -122,13 +151,12 @@ class GaiaControl():
             # TODO change to the communication method that
             # sends this information to eletronic
             # TODO wait for the response
-            send_angle(float(direction_diference))
+            self.angle_to_send = float(direction_diference)
             self.direction = new_direction
             return
 
         # TODO change to the communication method that gets
         # this information from eletronic
-        evasion = get_boat_evasion()
 
         if(evasion == 'yes' and (self.state != 'evading')):
             if(self.state == "returning_to_base"):
@@ -155,10 +183,7 @@ class GaiaControl():
         if(dist <= GPS_PRECISION):
             self.route.pop(0)
             return
-        send_point(float(self.route[0][0]), float(
-            self.route[0][1]))
-        time.sleep(TIME_BETWEEN_STOPS)
-        interrupt()
+        self.go=True
 
     # method responsible to control the boat when in the default collection
     # route
