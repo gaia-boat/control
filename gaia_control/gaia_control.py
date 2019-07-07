@@ -2,18 +2,18 @@ import math
 from gaia_router.map_route.map_route import MapRouter as Router
 from gaia_router.macros import GPS_PRECISION
 from gaia_communication import gaia_communication
-from image_processing import capture
+# from image_processing import capture
 import time
 import os
 
-TIME_BETWEEN_STOPS = "1"
+TIME_BETWEEN_STOPS = 1
 MESSAGE_START_SIGNAL = "i"
 
 
 def get_boat_evasion():
     #status = capture()
     status = input("evade? ") 
-    if(status == 1):
+    if(status == '1'):
         return True
     else:
         return False
@@ -58,8 +58,8 @@ class GaiaControl():
 
     def __init__(self):
 
-        os.system('sudo systemctl stop gpsd.socket')
-        os.system('sudo systemctl disable gpsd.socket')
+        # os.system('sudo systemctl stop gpsd.socket')
+        # os.system('sudo systemctl disable gpsd.socket')
 
         self.recive_first_message()
 
@@ -72,16 +72,15 @@ class GaiaControl():
         self.angle_to_send=0
 
     def send_information(self):
+        print("go bool ",self.go)
         message = send_go(self.go)
         message += send_point(self.current_position[0],self.current_position[1])
-        message += send_angle(self.angle_to_send)
-        print("1 - ", self.activate_collection)
-        print("2 - ", send_activate_collection(self.activate_collection))
-        print("3 - ", message)
+        message += send_angle(self.direction)
         message += send_activate_collection(self.activate_collection)
-        print(message)
+        print("sending message - ",message)
         #gaia_communication.data_sender(message)
         if(self.go == True):
+            self.current_position = self.route[0]
             time.sleep(TIME_BETWEEN_STOPS)
             self.go = False
             self.send_information()
@@ -91,12 +90,13 @@ class GaiaControl():
         #gaia_communication.data_sender(MESSAGE_START_SIGNAL)
         #message = gaia_communication.data_receiver()
         #message = message.split(',')
-        self.current_position = get_gps_position()
-        print(self.current_position)
-        lat1=input(("lat1? "))
-        long1=input(("long1? "))
-        lat2=input(("lat2? "))
-        long2=input(("long2? "))
+        # self.current_position = get_gps_position()
+        # print(self.current_position)
+        lat1=-15.989769
+        long1=-48.044853
+        lat2= lat1 + (3*GPS_PRECISION)
+        long2= long1 + (3*GPS_PRECISION)
+        self.current_position = (lat1,long1)
         #self.router = Router((float(message[0]), float(message[1])), (float(message[2]), float(message[3])), self.current_position, self.current_position)
         self.router = Router((float(lat1), float(long1)), (float(lat2), float(long2)), self.current_position, self.current_position)
         #self.direction = float(message[4])
@@ -125,7 +125,8 @@ class GaiaControl():
 
     def run(self):
         while(self.state != 'final'):
-            print(self.state)
+            print("current state -", self.state)
+            print("current route -", self.route)
             self.send_information()
             if(self.state == 'collecting'):
                 self.collecting()
@@ -142,7 +143,19 @@ class GaiaControl():
     def in_route(self):
 
         # TODO change this method to the eletronic method
-        self.current_position = get_gps_position()
+        # self.current_position = get_gps_position()
+        # chage this method to return only the real distance
+        dist = (Router._calculate_real_distance(
+            self.current_position, self.route[0]))[0]
+        print("----------------------------------------------------------------------")
+
+        if(dist < GPS_PRECISION/2):
+            self.route.pop(0)
+            print("******reomoving point******")
+            if(self.route != []):
+                self.in_route()
+            return
+        
         self.recive_message()
 
 
@@ -167,27 +180,30 @@ class GaiaControl():
                 self.route = [self.current_position] + self.route
                 self.collection_route = self.route
                 self.activate_collection = False
-            self.route = self.router.trace_route_to_base() + self.route
+            self.route = [self.router.base_location]
             self.state = 'returning_to_base'
+            print("******status******")
             return
         
         new_direction = self.direction_change_angle()
-        self.direction = self.direction
         direction_diference = new_direction - self.direction
         print("---", new_direction, "---", self.direction)
-        if(direction_diference != 0):
+        if(float("{0:.2f}".format(direction_diference)) != 0):
             if(direction_diference > 0):
                 direction_diference += (2*math.pi)
             # TODO change to the communication method that
             # sends this information to eletronic
             # TODO wait for the response
-            self.angle_to_send = float(direction_diference)
-            self.direction = new_direction
+            # self.angle_to_send = float(direction_diference)
+            self.direction += direction_diference
+            self.direction = self.direction%(2*math.pi)
+            print("direction changed to --",self.direction)
+            print("******change direction******")            
             return
 
         # TODO change to the communication method that gets
         # this information from eletronic
-
+        print("evasion  -  ", evasion)
         if(evasion and (self.state != 'evading')):
             if(self.state == "returning_to_base"):
                 self.was_returning = True
@@ -198,6 +214,7 @@ class GaiaControl():
             self.state = 'evading'
             self.route = self.router.trace_evasion_route(
                 self.route, self.direction)
+            print("******evading******")            
             return
 
         # TODO change to the communication method that
@@ -206,13 +223,7 @@ class GaiaControl():
         print(self.current_position, type(self.current_position))
         print(self.route[0], type(self.route[0]))
 
-        # chage this method to return only the real distance
-        dist = (Router._calculate_real_distance(
-            self.current_position, self.route[0]))[0]
-
-        if(dist <= GPS_PRECISION):
-            self.route.pop(0)
-            return
+        print("******going******")
         self.go=True
 
     # method responsible to control the boat when in the default collection
@@ -220,6 +231,8 @@ class GaiaControl():
     def collecting(self):
         if(self.route == []):
             self.state = 'returning_to_base'
+            self.route.append(self.router.base_location)
+            return
         self.in_route()
 
     # method responsible to control the boat when in tracing a evasion route
