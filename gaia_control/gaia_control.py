@@ -11,7 +11,7 @@ MESSAGE_START_SIGNAL = "i"
 
 
 def get_boat_evasion():
-    #status = capture()
+    # status = capture()
     status = input("evade? ")
     if(status == '1'):
         return True
@@ -81,7 +81,7 @@ class GaiaControl():
                               self.current_position[1])
         print("sending message - ", message)
         gaia_communication.data_sender(message)
-        if(self.go == True):
+        if(self.go):
             self.current_position = self.route[0]
             time.sleep(TIME_BETWEEN_STOPS)
             self.go = False
@@ -96,9 +96,11 @@ class GaiaControl():
         a = input()
         aux = get_gps_position()
         # self.router = Router((float(message[0]), float(message[1])), (float(
-            # message[2]), float(message[3])), self.current_position, self.current_position)
-        self.router = Router(self.current_position, aux,self.current_position,self.current_position)
-        
+        # message[2]), float(message[3])), self.current_position,
+        # self.current_position)
+        self.router = Router(self.current_position, aux,
+                             self.current_position, self.current_position)
+
         self.direction = 0
         self.activate_collection = False
 
@@ -141,7 +143,7 @@ class GaiaControl():
         # chage this method to return only the real distance
         dist = (Router._calculate_real_distance(
             self.current_position, self.route[0]))[0]
-        print("----------------------------------------------------------------------")
+        print("-------------------------------------------------------------")
 
         if(dist < GPS_PRECISION/2):
             self.route.pop(0)
@@ -165,7 +167,7 @@ class GaiaControl():
         # TODO change to the communication method that gets
         # this information from eletronic
 
-       # if(self.status  and (self.state != 'returning_to_base')):
+        # if(self.status  and (self.state != 'returning_to_base')):
         if(self.status == '1' and (self.state != 'returning_to_base')):
             if(self.state == "collecting"):
                 self.was_collecting = True
