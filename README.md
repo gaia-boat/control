@@ -1,13 +1,35 @@
-# Gaia boat's control module
-## What does it do
+The Gaia Boat is an autonomous boat designed to collect trash from a lake’s shore. It uses image processing to detect obstacles and trash, an app for tracing routes and a series of other embedded software for controlling the hardware.
 
-This module is responsible for the integration and communication of the internal software modules.
+## Other Gaia Boat’s software links
 
-## Usage and installation
+- [gaia router](https://github.com/gaia-boat/router)
+- [gaia control](https://github.com/gaia-boat/control)
+- [gaia app](https://github.com/gaia-boat/app)
+- [gaia communication](https://github.com/gaia-boat/communication)
+- [gaia image processing](https://github.com/gaia-boat/image-processing)
 
-### Installation
+## The control module
 
-Installation for this module is made via the Python Package Index (PIP/PyPi), you can install the package through the following command: `pip install gaia-control` or by adding it on your `requirements.txt` file.
+### Usage and installation
 
-### Usage
+#### Usage
 
+This module is used to represent the internal state-driven machine, modeled after **Petri’s Net**, that is the core of the Gaia Boat project’s operational logic, while doing the integration between sensors, electronic components and high level software.
+
+#### Installation
+
+To install the package you must install if through pip, using the following command:
+
+```shell
+pip install gaia-control
+```
+
+Or adding it into your requirements file. You can see the latest version [HERE](https://pypi.org/project/gaia-control/).
+
+If you want to upgrade its version you must use:
+
+```shell
+pip install --upgrade gaia-control
+```
+
+**Note:** this module has every other Gaia software as dependency, the only exception is the mobile app.
