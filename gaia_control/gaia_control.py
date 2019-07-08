@@ -89,12 +89,16 @@ class GaiaControl():
 
     def recive_first_message(self):
 
-        message = gaia_communication.data_receiver()
-        message = message.split(',')
+        # message = gaia_communication.data_receiver()
+        # message = message.split(',')
         self.current_position = get_gps_position()
         print(self.current_position)
-        self.router = Router((float(message[0]), float(message[1])), (float(
-            message[2]), float(message[3])), self.current_position, self.current_position)
+        a = input()
+        aux = get_gps_position()
+        # self.router = Router((float(message[0]), float(message[1])), (float(
+            # message[2]), float(message[3])), self.current_position, self.current_position)
+        self.router = Router(self.current_position, aux,self.current_position,self.current_position)
+        
         self.direction = 0
         self.activate_collection = False
 
