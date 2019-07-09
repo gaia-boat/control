@@ -182,15 +182,12 @@ class GaiaControl():
         new_direction = self.direction_change_angle()
         direction_diference = new_direction - self.direction
         print("---", new_direction, "---", self.direction)
-        if(float("{0:.2f}".format(direction_diference)) != 0):
-            if(direction_diference > 0):
-                direction_diference += (2*math.pi)
+        if(direction_diference > 0.05):
             # TODO change to the communication method that
             # sends this information to eletronic
             # TODO wait for the response
             # self.angle_to_send = float(direction_diference)
-            self.direction += direction_diference
-            self.direction = self.direction % (2*math.pi)
+            self.direction = new_direction % (2*math.pi)
             print("direction changed to --", self.direction)
             print("******change direction******")
             return
@@ -297,12 +294,12 @@ class GaiaControl():
             if(dist_y > 0):
                 return angle
             else:
-                return angle + (3*math.pi/4)
+                return 2 *math.pi angle
         else:
             if(dist_y > 0):
-                return angle + math.pi/2
+                return math.pi - angle
             else:
-                return angle + math.pi/4
+                return angle + math.pi
 
         return angle
 
