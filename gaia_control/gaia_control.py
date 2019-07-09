@@ -82,7 +82,7 @@ class GaiaControl():
         print("sending message - ", message)
         gaia_communication.data_sender(message)
         if(self.go):
-            self.current_position = self.route[0]
+            self.current_position = get_gps_position()
             time.sleep(TIME_BETWEEN_STOPS)
             self.go = False
             self.send_information()
@@ -111,7 +111,6 @@ class GaiaControl():
             is_too_heavy = True
         else:
             is_too_heavy = False
-        is_too_heavy = input("heavy ?")
         distance = int(message[1])
         if(distance > 4 and distance < 15):
             is_full = True
