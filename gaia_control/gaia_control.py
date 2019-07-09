@@ -37,8 +37,10 @@ def send_activate_collection(activate_collection):
 
 
 def send_angle(new_direction):
+    if(new_dire
     print("sending angle", new_direction)
     message = str(new_direction)+','
+
     return message
 
 
@@ -51,11 +53,7 @@ def send_point(point_lat, point_long):
 
 def send_go(go):
     print("sending go", go)
-    if(go):
-        message = '1,'
-    else:
-        message = '0,'
-    return message
+    return message + ','
 
 
 class GaiaControl():
@@ -73,7 +71,7 @@ class GaiaControl():
         self.was_collecting = False
         self.was_returning = False
         self.activate_collection = True
-        self.go = False
+        self.go = 's'
         self.angle_to_send = 0
 
     def send_information(self):
@@ -82,11 +80,11 @@ class GaiaControl():
                               self.current_position[1])
         print("sending message - ", message)
 #        gaia_communication.data_sender(message)
-        if(self.go):
+        if(self.go == 'g'):
             self.current_position = get_gps_position()
 #            time.sleep(TIME_BETWEEN_STOPS)
             a = input("waiting to go") 
-            self.go = False
+            self.go = 's'
             self.send_information()
 
     def recive_first_message(self):
@@ -158,9 +156,8 @@ class GaiaControl():
         evasion = get_boat_evasion()
 
         self.position_to_send = self.current_position
-        self.angle_to_send = 0
         self.activate_collection = self.activate_collection
-        self.go = False
+        self.go = 's'
 
         self.router.current_position = self.current_position
 
@@ -188,7 +185,19 @@ class GaiaControl():
             # sends this information to eletronic
             # TODO wait for the response
             # self.angle_to_send = float(direction_diference)
-            self.direction = new_direction % (2*math.pi)
+            new_direction = new_direction % (2*math.pi)
+            direction_diference = new_direction - self.direction
+            if(direction_diference > 0):
+                if(direction_diference >180):
+                    self.go = 'l'
+                else:
+                    self.go = 'r'
+            else:
+                if(direction_diference < -180):
+                    self.go = 'r'
+                else:
+                    self.go = 'l'
+
             print("direction changed to --", self.direction)
             print("******change direction******")
             return
@@ -216,7 +225,7 @@ class GaiaControl():
         print(self.route[0], type(self.route[0]))
 
         print("******going******")
-        self.go = True
+        self.go = 'g'
 
     # method responsible to control the boat when in the default collection
     # route
