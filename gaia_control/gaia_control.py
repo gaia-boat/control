@@ -45,6 +45,7 @@ def send_angle(new_direction):
 def send_point(point_lat, point_long):
     message = str(point_lat) + ','
     message += str(point_long) + ','
+    print("message",message)
     return message
 
 
@@ -67,7 +68,7 @@ class GaiaControl():
         self.recive_first_message()
 
         self.route = self.router.trace_collection_route()
-        print("-----first route------",self.route)
+        print("-----collection route------",self.route)
         self.state = 'collecting'
         self.was_collecting = False
         self.was_returning = False
@@ -76,7 +77,6 @@ class GaiaControl():
         self.angle_to_send = 0
 
     def send_information(self):
-        print("go bool ", self.go)
         message = send_go(self.go)
         message += send_point(self.current_position[0],
                               self.current_position[1])
@@ -162,7 +162,6 @@ class GaiaControl():
         self.activate_collection = self.activate_collection
         self.go = False
 
-        print('gps return - ', self.current_position)
         self.router.current_position = self.current_position
 
         # TODO change to the communication method that gets
