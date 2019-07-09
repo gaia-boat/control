@@ -67,6 +67,7 @@ class GaiaControl():
         self.recive_first_message()
 
         self.route = self.router.trace_collection_route()
+        print("-----first route------",self.route)
         self.state = 'collecting'
         self.was_collecting = False
         self.was_returning = False
@@ -80,10 +81,11 @@ class GaiaControl():
         message += send_point(self.current_position[0],
                               self.current_position[1])
         print("sending message - ", message)
-        gaia_communication.data_sender(message)
+#        gaia_communication.data_sender(message)
         if(self.go):
             self.current_position = get_gps_position()
-            time.sleep(TIME_BETWEEN_STOPS)
+#            time.sleep(TIME_BETWEEN_STOPS)
+            a = input("waiting to go") 
             self.go = False
             self.send_information()
 
@@ -294,7 +296,7 @@ class GaiaControl():
             if(dist_y > 0):
                 return angle
             else:
-                return 2 *math.pi angle
+                return 2 *math.pi - angle
         else:
             if(dist_y > 0):
                 return math.pi - angle
